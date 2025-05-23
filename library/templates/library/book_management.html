@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Book Management System - Django</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .book-card {
+            transition: all 0.3s ease;
+        }
+        .book-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        /* Estilo para o placeholder do CSRF token */
+        #csrfTokenContainer { display: none; }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <!-- Header -->
+        <header class="mb-10 text-center">
+            <h1 class="text-4xl font-bold text-indigo-700 mb-2">📚 Book Manager (Django)</h1>
+            <p class="text-gray-600">Manage your personal library with ease</p>
+        </header>
+
+        <!-- Main Content -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Left Column - Form -->
+            <div class="lg:col-span-1 bg-white rounded-xl shadow-md p-6 h-fit">
+                <h2 class="text-2xl font-semibold text-gray-800 mb-6">Book Operations</h2>
+                
+                <!-- CSRF Token (Django vai inserir aqui) -->
+                <div id="csrfTokenContainer">{% csrf_token %}</div>
+
+                <!-- Tabs -->
+                <div class="flex border-b border-gray-200 mb-6">
+                    <button id="addTab" class="tab-btn active py-2 px-4 font-medium text-indigo-600 border-b-2 border-indigo-600">Add Book</button>
+                    <button id="searchTab" class="tab-btn py-2 px-4 font-medium text-gray-500 hover:text-indigo-600">Search</button>
+                    <button id="removeTab" class="tab-btn py-2 px-4 font-medium text-gray-500 hover:text-indigo-600">Remove</button>
+                </div>
+                
+                <!-- Add Book Form -->
+                <div id="addForm" class="tab-content">
+                    <div class="space-y-4">
+                        <div>
+                            <label for="title" class="block text-sm font-medium text-gray-700 mb-1">Title</label>
+                            <input type="text" id="title" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                        </div>
+                        <div>
+                            <label for="author" class="block text-sm font-medium text-gray-700 mb-1">Author</label>
+                            <input type="text" id="author" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                        </div>
+                        <div>
+                            <label for="isbn" class="block text-sm font-medium text-gray-700 mb-1">ISBN</label>
+                            <input type="text" id="isbn" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                        </div>
+                        <div>
+                            <label for="year" class="block text-sm font-medium text-gray-700 mb-1">Publication Year</label>
+                            <input type="number" id="year" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                        </div>
+                        <button id="addBookBtn" class="w-full bg-indigo-600 text-white py-2 px-4 rounded-lg hover:bg-indigo-700 transition flex items-center justify-center">
+                            <i class="fas fa-plus-circle mr-2"></i> Add Book
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Search Form -->
+                <div id="searchForm" class="tab-content hidden">
+                    <div class="space-y-4">
+                        <div>
+                            <label for="searchTerm" class="block text-sm font-medium text-gray-700 mb-1">Search by Title or Author</label>
+                            <input type="text" id="searchTerm" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                        </div>
+                        <button id="searchBtn" class="w-full bg-indigo-600 text-white py-2 px-4 rounded-lg hover:bg-indigo-700 transition flex items-center justify-center">
+                            <i class="fas fa-search mr-2"></i> Search Books
+                        </button>
+                        <button id="showAllBtn" class="w-full bg-gray-200 text-gray-800 py-2 px-4 rounded-lg hover:bg-gray-300 transition flex items-center justify-center">
+                            <i class="fas fa-list mr-2"></i> Show All Books
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Remove Form -->
+                <div id="removeForm" class="tab-content hidden">
+                    <div class="space-y-4">
+                        <div>
+                            <label for="removeIsbn" class="block text-sm font-medium text-gray-700 mb-1">Enter ISBN to Remove</label>
+                            <input type="text" id="removeIsbn" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                        </div>
+                        <button id="removeBtn" class="w-full bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 transition flex items-center justify-center">
+                            <i class="fas fa-trash-alt mr-2"></i> Remove Book
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Right Column - Book List -->
+            <div class="lg:col-span-2">
+                <div class="bg-white rounded-xl shadow-md p-6">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-2xl font-semibold text-gray-800">Your Library</h2>
+                        <div class="text-sm text-gray-500">
+                            <span id="bookCount">0</span> books
+                        </div>
+                    </div>
+                    
+                    <!-- Book List -->
+                    <div id="bookList" class="space-y-4">
+                        <div class="text-center py-10 text-gray-500">
+                            <i class="fas fa-book-open text-4xl mb-3"></i>
+                            <p>Loading books or your library is empty...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed bottom-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg transform translate-y-10 opacity-0 transition-all duration-300 flex items-center">
+        <i class="fas fa-check-circle mr-2"></i>
+        <span id="toastMessage">Book added successfully!</span>
+    </div>
+
+    <script>
+        // Global state for books - will be populated from server
+        let currentBooks = []; // Used to store the currently displayed list (all or search results)
+        let totalBookCount = 0; // Total books in library
+
+        // DOM Elements
+        const bookListEl = document.getElementById('bookList');
+        const bookCountEl = document.getElementById('bookCount');
+        const toastEl = document.getElementById('toast');
+        const toastMessageEl = document.getElementById('toastMessage');
+        
+        // Form elements
+        const titleInput = document.getElementById('title');
+        const authorInput = document.getElementById('author');
+        const isbnInput = document.getElementById('isbn');
+        const yearInput = document.getElementById('year');
+        const searchTermInput = document.getElementById('searchTerm');
+        const removeIsbnInput = document.getElementById('removeIsbn');
+        
+        // Buttons
+        const addBookBtn = document.getElementById('addBookBtn');
+        const searchBtn = document.getElementById('searchBtn');
+        const showAllBtn = document.getElementById('showAllBtn');
+        const removeBtn = document.getElementById('removeBtn');
+        
+        // Tab elements
+        const addTab = document.getElementById('addTab');
+        const searchTab = document.getElementById('searchTab');
+        const removeTab = document.getElementById('removeTab');
+        const addForm = document.getElementById('addForm');
+        const searchForm = document.getElementById('searchForm');
+        const removeForm = document.getElementById('removeForm');
+
+        // CSRF Token
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+        const csrftoken = getCookie('csrftoken') || document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+
+        // API Endpoints
+        const API_URL_BOOKS = '/api/books/'; // For GET (list/search) and POST (add)
+        const API_URL_BOOK_DETAIL = (isbn) => `/api/books/${isbn}/`; // For DELETE
+
+        // --- Core Functions ---
+        async function fetchBooks(searchTerm = null) {
+            let url = API_URL_BOOKS;
+            if (searchTerm) {
+                url += `?search=${encodeURIComponent(searchTerm)}`;
+            }
+            try {
+                const response = await fetch(url);
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({error: "Failed to fetch books"}));
+                    throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+                }
+                const data = await response.json();
+                currentBooks = data.books;
+                if (!searchTerm) { // Only update total count when fetching all books
+                    totalBookCount = data.count; 
+                }
+                updateBookList(currentBooks, !searchTerm); // Pass flag if it's a full list update
+            } catch (error) {
+                console.error('Error fetching books:', error);
+                showToast(`Error fetching books: ${error.message}`, 'red-500');
+                updateBookList([], !searchTerm); // Show empty list on error
+            }
+        }
+
+        async function addBook() {
+            const title = titleInput.value.trim();
+            const author = authorInput.value.trim();
+            const isbn = isbnInput.value.trim();
+            const year = yearInput.value.trim();
+            
+            if (!title || !author || !isbn || !year) {
+                showToast('Please fill in all fields', 'red-500');
+                return;
+            }
+            
+            const newBook = { title, author, isbn, year };
+
+            try {
+                const response = await fetch(API_URL_BOOKS, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrftoken
+                    },
+                    body: JSON.stringify(newBook)
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) { // status codes 4xx, 5xx
+                    throw new Error(data.error || `HTTP error! status: ${response.status}`);
+                }
+                
+                showToast(data.message || 'Book added successfully!', 'green-500');
+                // Clear form
+                titleInput.value = '';
+                authorInput.value = '';
+                isbnInput.value = '';
+                yearInput.value = '';
+                fetchBooks(); // Refresh the list
+            } catch (error) {
+                console.error('Error adding book:', error);
+                showToast(`Error: ${error.message}`, 'red-500');
+            }
+        }
+        
+        function searchBooks() {
+            const term = searchTermInput.value.trim();
+            if (!term) {
+                showToast('Please enter a search term', 'yellow-500'); // Changed to yellow for non-critical
+                fetchBooks(); // Show all if search term is empty
+                return;
+            }
+            fetchBooks(term);
+        }
+        
+        async function removeBookByIsbn(isbn, fromList = false) { // fromList indicates if called from list item button
+            if (!isbn) {
+                showToast('Please enter an ISBN', 'red-500');
+                return;
+            }
+            
+            try {
+                const response = await fetch(API_URL_BOOK_DETAIL(isbn), {
+                    method: 'DELETE',
+                    headers: {
+                        'X-CSRFToken': csrftoken
+                    }
+                });
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || `HTTP error! status: ${response.status}`);
+                }
+
+                showToast(data.message || 'Book removed successfully!', 'green-500');
+                if (!fromList) removeIsbnInput.value = ''; // Clear input only if removed from form
+                fetchBooks(); // Refresh the list
+            } catch (error) {
+                console.error('Error removing book:', error);
+                showToast(`Error: ${error.message}`, 'red-500');
+            }
+        }
+
+        function confirmRemove(isbn) {
+            if (confirm('Are you sure you want to remove this book?')) {
+                removeBookByIsbn(isbn, true); // Pass true as it's called from the list item
+            }
+        }
+        
+        function updateBookList(booksToShow, isFullListUpdate = false) {
+            if (isFullListUpdate) { // Only update total count span if we fetched all books
+                 bookCountEl.textContent = totalBookCount;
+            }
+            // If booksToShow is empty but totalBookCount > 0, it means it's a search with no results
+            if (booksToShow.length === 0) {
+                bookListEl.innerHTML = `
+                    <div class="text-center py-10 text-gray-500">
+                        <i class="fas fa-book-open text-4xl mb-3"></i>
+                        <p>${totalBookCount === 0 ? 'Your library is empty. Add some books to get started!' : 'No books match your current filter or search.'}</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            bookListEl.innerHTML = booksToShow.map((book, index) => `
+                <div class="book-card bg-white border border-gray-200 rounded-lg p-4 fade-in" style="animation-delay: ${index * 0.05}s">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-800">${book.title}</h3>
+                            <p class="text-gray-600">by ${book.author}</p>
+                        </div>
+                        <span class="bg-indigo-100 text-indigo-800 text-xs px-2 py-1 rounded">${book.year}</span>
+                    </div>
+                    <div class="mt-3 flex justify-between items-center">
+                        <span class="text-sm text-gray-500">ISBN: ${book.isbn}</span>
+                        <button class="text-red-500 hover:text-red-700 text-sm" onclick="confirmRemove('${book.isbn}')">
+                            <i class="fas fa-trash-alt mr-1"></i> Remove
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        function showToast(message, colorClass = 'green-500') { // Default to green
+            toastMessageEl.textContent = message;
+            // Remove existing color classes before adding new one
+            toastEl.classList.remove('bg-green-500', 'bg-red-500', 'bg-yellow-500');
+            toastEl.classList.add(`bg-${colorClass}`); // Use template literal for dynamic class
+            
+            toastEl.classList.remove('translate-y-10', 'opacity-0');
+            toastEl.classList.add('translate-y-0', 'opacity-100');
+            
+            setTimeout(() => {
+                toastEl.classList.remove('translate-y-0', 'opacity-100');
+                toastEl.classList.add('translate-y-10', 'opacity-0');
+            }, 3000);
+        }
+        
+        function switchTab(tab) {
+            // Reset all tabs
+            [addTab, searchTab, removeTab].forEach(t => {
+                t.classList.remove('active', 'text-indigo-600', 'border-indigo-600');
+                t.classList.add('text-gray-500', 'border-transparent'); // Ensure border is reset
+            });
+            
+            [addForm, searchForm, removeForm].forEach(f => f.classList.add('hidden'));
+            
+            // Activate selected tab
+            if (tab === 'add') {
+                addTab.classList.add('active', 'text-indigo-600', 'border-indigo-600');
+                addTab.classList.remove('text-gray-500', 'border-transparent');
+                addForm.classList.remove('hidden');
+            } else if (tab === 'search') {
+                searchTab.classList.add('active', 'text-indigo-600', 'border-indigo-600');
+                searchTab.classList.remove('text-gray-500', 'border-transparent');
+                searchForm.classList.remove('hidden');
+            } else if (tab === 'remove') {
+                removeTab.classList.add('active', 'text-indigo-600', 'border-indigo-600');
+                removeTab.classList.remove('text-gray-500', 'border-transparent');
+                removeForm.classList.remove('hidden');
+            }
+        }
+        
+        // Event Listeners
+        addBookBtn.addEventListener('click', addBook);
+        searchBtn.addEventListener('click', searchBooks);
+        showAllBtn.addEventListener('click', () => {
+            searchTermInput.value = ''; // Clear search term when showing all
+            fetchBooks();
+        });
+        removeBtn.addEventListener('click', () => removeBookByIsbn(removeIsbnInput.value.trim()));
+        
+        // Tab switching
+        addTab.addEventListener('click', () => switchTab('add'));
+        searchTab.addEventListener('click', () => switchTab('search'));
+        removeTab.addEventListener('click', () => switchTab('remove'));
+        
+        // Initial Load
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchBooks(); // Load initial books
+            switchTab('add'); // Default to add tab
+        });
+        
+        // Make confirmRemove available globally for inline onclick
+        window.confirmRemove = confirmRemove;
+    </script>
+</body>
+</html>
