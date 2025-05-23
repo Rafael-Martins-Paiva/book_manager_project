@@ -25,7 +25,7 @@ Este projeto é um gerenciador de livros simples construído com Django. Ele for
 2. **Clonar o Repositório:**
 
 ```bash
-git clone <URL_DO_REPOSITORIO>
+git clone https://github.com/Rafael-Martins-Paiva/book_manager_project.git
 cd book-manager-project
 ```
 
