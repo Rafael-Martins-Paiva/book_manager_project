@@ -12,6 +12,7 @@ Este projeto é um gerenciador de livros simples construído com Django. Ele for
 ## Tecnologias Utilizadas
 
 * **Python:** Linguagem de programação principal.
+* **Docker + Docker Compose**
 * **Django:** Framework web de alto nível para desenvolvimento rápido.
 * **Django REST framework:** Framework para construção de APIs RESTful com Django.
 * **SQLite:** Banco de dados leve para armazenamento de dados.
@@ -20,7 +21,7 @@ Este projeto é um gerenciador de livros simples construído com Django. Ele for
 
 ## Instalação
 
-1. **Pré-requisitos:** Certifique-se de que o Python 3.12 ou superior está instalado. É recomendável usar um ambiente virtual para isolar as dependências do projeto.
+1. **Pré-requisitos:** Docker + Docker Compose.
 
 2. **Clonar o Repositório:**
 
@@ -38,18 +39,18 @@ docker-compose up --build
 5. **Migrar Banco de Dados:**
 
 ```bash
-python manage.py migrate
+docker-compose exec web python manage.py migrate
 ```
 
 6. **Executar Servidor de Desenvolvimento:**
 
 ```bash
-python manage.py runserver
+docker-compose exec web python manage.py runserver 0.0.0.0:8000
 ```
 
 ## Como Usar
 
-Após iniciar o servidor de desenvolvimento, acesse a interface web em `http://127.0.0.1:8000/`. Adicione livros preenchendo o formulário e enviando os dados.
+Após iniciar o servidor de desenvolvimento, acesse a interface web em `http://0.0.0.0:8000/`. Adicione livros preenchendo o formulário e enviando os dados.
 
 A API RESTful está disponível em:
 
