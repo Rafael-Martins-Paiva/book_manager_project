@@ -26,21 +26,13 @@ Este projeto é um gerenciador de livros simples construído com Django. Ele for
 
 ```bash
 git clone https://github.com/Rafael-Martins-Paiva/book_manager_project.git
-cd book-manager-project
+cd book_manager_project
 ```
 
-3. **Criar Ambiente Virtual:**
+3. **rodar projeto:**
 
 ```bash
-python3 -m venv .venv
-source .venv/bin/activate  # Linux/macOS
-.venv\Scripts\activate     # Windows
-```
-
-4. **Instalar Dependências:**
-
-```bash
-pip install -r requirements.txt
+docker-compose up --build
 ```
 
 5. **Migrar Banco de Dados:**
